@@ -558,6 +558,31 @@ app.get("/api/produccion/leche/:id", async (req, res) => {
   }
 });
 
+// Obtener historial de producción de leche
+app.get("/api/historial/produccion/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(`Obteniendo el historial de produccion de la vaca con ID: ${id}`);
+
+  try {
+    const { data, error } = await supabase
+      .from('ProduccionLeche')
+      .select('*')
+      .eq('VacaId', id);
+
+      if (error) {
+        console.error("❌ Error al obtener el historial de produccion:", error);
+        return res.status(500).json({ message: "Error al obtener el historial de produccion" });
+      }
+
+      res.status(200).json({
+        message: "✅ Historial de produccion obtenido con éxito",
+        registros: data
+      });
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+  }
+})
+
 // Registrar producción de leche
 app.post("/api/registrar/leche/:id", async (req, res) => {
   const { id } = req.params;
