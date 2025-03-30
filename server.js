@@ -664,7 +664,7 @@ app.post("/api/registrar/procesos/medicos/:id", async (req, res) => {
 
     res.status(201).json({
       message: "✅ Salud de la vaca registrada con éxito",
-      salud: data[0]
+      procesos: data[0]
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
