@@ -622,7 +622,7 @@ app.get("/api/procesos/medicos/:id", async (req, res) => {
 
   try {
     const { data, error } = await supabase
-      .from('ProcedimientosMedicos')
+      .from('ProcedimientoMedicos')
       .select('*')
       .order('CreatedAt', { ascending: false })
       .eq('VacaId', id);
@@ -651,7 +651,7 @@ app.post("/api/registrar/procesos/medicos/:id", async (req, res) => {
 
   try {
     const { data, error } = await supabase
-      .from('ProcedimientosMedicos')
+      .from('ProcedimientoMedicos')
       .insert([
         { Fecha, Tipo, Descripcion, Estado, VacaId: id }
       ])
