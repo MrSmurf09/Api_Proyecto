@@ -624,7 +624,7 @@ app.get("/api/procesos/medicos/:id", async (req, res) => {
     const { data, error } = await supabase
       .from('ProcedimientoMedico')
       .select('*')
-      .order('CreatedAt', { ascending: false })
+      .order('created_at', { ascending: false })
       .eq('VacaId', id);
 
     if (error) {
