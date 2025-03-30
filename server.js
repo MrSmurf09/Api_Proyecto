@@ -567,6 +567,7 @@ app.get("/api/historial/produccion/:id", async (req, res) => {
     const { data, error } = await supabase
       .from('ProduccionLeche')
       .select('*')
+      .order('created_at', { ascending: false })
       .eq('VacaId', id);
 
       if (error) {
@@ -608,6 +609,66 @@ app.post("/api/registrar/leche/:id", async (req, res) => {
   } catch (error) {
     console.error("Error en el servidor:", error);
     res.status(500).json({ message: "Error al registrar la produccion de leche" });
+  }
+});
+
+
+// ======== RUTAS DE SALUD ========
+
+// Obtener salud de una vaca
+app.get("/api/procesos/medicos/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(`📌 Obteniendo salud de la vaca con ID: ${id}`);
+
+  try {
+    const { data, error } = await supabase
+      .from('ProcesosMedicos')
+      .select('*')
+      .order('CreatedAt', { ascending: false })
+      .eq('VacaId', id);
+
+    if (error) {
+      console.error("❌ Error al obtener la salud de la vaca:", error);
+      return res.status(500).json({ message: "Error al obtener la salud de la vaca" });
+    }
+
+    res.status(200).json({
+      message: "✅ Salud de la vaca obtenida con éxito",
+      procesos: data
+    });
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    res.status(500).json({ message: "Error al obtener la salud de la vaca" });
+  }
+});
+
+// Registrar salud de una vaca
+app.post("/api/registrar/procesos/medicos/:id", async (req, res) => {
+  const { id } = req.params;
+  const { Fecha, Tipo, Descripcion, Estado } = req.body;
+
+  console.log("📌 Datos recibidos para registrar la salud de la vaca:", req.body);
+
+  try {
+    const { data, error } = await supabase
+      .from('ProcesosMedicos')
+      .insert([
+        { Fecha, Tipo, Descripcion, Estado, VacaId: id }
+      ])
+      .select();
+
+    if (error) {
+      console.error("❌ Error al registrar la salud de la vaca:", error);
+      return res.status(500).json({ message: "Error al registrar la salud de la vaca" });
+    }
+
+    res.status(201).json({
+      message: "✅ Salud de la vaca registrada con éxito",
+      salud: data[0]
+    });
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    res.status(500).json({ message: "Error al registrar la salud de la vaca" });
   }
 });
 
