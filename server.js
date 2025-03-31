@@ -613,12 +613,12 @@ app.post("/api/registrar/leche/:id", async (req, res) => {
 });
 
 
-// ======== RUTAS DE SALUD ========
+// ======== RUTAS DE PROCEDIMIENTO MEDICO ========
 
-// Obtener salud de una vaca
+// Obtener procesos de medico de una vaca
 app.get("/api/procesos/medicos/:id", async (req, res) => {
   const { id } = req.params;
-  console.log(`📌 Obteniendo salud de la vaca con ID: ${id}`);
+  console.log(`📌 Obteniendo procesos de medico de la vaca con ID: ${id}`);
 
   try {
     const { data, error } = await supabase
@@ -628,26 +628,26 @@ app.get("/api/procesos/medicos/:id", async (req, res) => {
       .eq('VacaId', id);
 
     if (error) {
-      console.error("❌ Error al obtener la salud de la vaca:", error);
-      return res.status(500).json({ message: "Error al obtener la salud de la vaca" });
+      console.error("❌ Error al obtener los procesos de medico:", error);
+      return res.status(500).json({ message: "Error al obtener los procesos de medico" });
     }
 
     res.status(200).json({
-      message: "✅ Salud de la vaca obtenida con éxito",
+      message: "✅ Procesos de medico obtenidos con éxito",
       procesos: data
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
-    res.status(500).json({ message: "Error al obtener la salud de la vaca" });
+    res.status(500).json({ message: "Error al obtener las procesos de medico" });
   }
 });
 
-// Registrar salud de una vaca
+// Registrar procesos de medico de una vaca
 app.post("/api/registrar/procesos/medicos/:id", async (req, res) => {
   const { id } = req.params;
   const { Fecha, Tipo, Descripcion, Estado } = req.body;
 
-  console.log("📌 Datos recibidos para registrar la salud de la vaca:", req.body);
+  console.log("📌 Datos recibidos para registrar los procesos de medico de la vaca:", req.body);
 
   try {
     const { data, error } = await supabase
@@ -658,17 +658,76 @@ app.post("/api/registrar/procesos/medicos/:id", async (req, res) => {
       .select();
 
     if (error) {
-      console.error("❌ Error al registrar la salud de la vaca:", error);
-      return res.status(500).json({ message: "Error al registrar la salud de la vaca" });
+      console.error("❌ Error al registrar los procesos de medico:", error);
+      return res.status(500).json({ message: "Error al registrar los procesos de medico" });
     }
 
     res.status(201).json({
-      message: "✅ Salud de la vaca registrada con éxito",
+      message: "✅ Procesos de medico registrados con éxito",
       procesos: data[0]
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
-    res.status(500).json({ message: "Error al registrar la salud de la vaca" });
+    res.status(500).json({ message: "Error al registrar los procesos de medico" });
+  }
+});
+
+// ======== RUTAS DE Recordatorios ========
+
+// Obtener recordatorios de una vaca
+app.get("/api/obtener/recordatorios/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(`📌 Obteniendo recordatorios de la vaca con ID: ${id}`);
+
+  try {
+    const { data, error } = await supabase
+      .from('Recordatorio')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .eq('VacaId', id);
+
+    if (error) {
+      console.error("❌ Error al obtener los recordatorios:", error);
+      return res.status(500).json({ message: "Error al obtener los recordatorios" });
+    }
+
+    res.status(200).json({
+      message: "✅ Recordatorios obtenidos con éxito",
+      recordatorios: data
+    });
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    res.status(500).json({ message: "Error al obtener los recordatorios" });
+  }
+});
+
+// Registrar recordatorios de una vaca
+app.post("/api/registrar/recordatorios/:id", async (req, res) => {
+  const { id } = req.params;
+  const { Fecha, Titulo, Descripcion, Tipo, UsuarioId } = req.body;
+
+  console.log("📌 Datos recibidos para registrar los recordatorios de la vaca:", req.body);
+
+  try {
+    const { data, error } = await supabase
+      .from('Recordatorio')
+      .insert([
+        { Fecha, Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }
+      ])
+      .select();
+
+    if (error) {
+      console.error("❌ Error al registrar los recordatorios:", error);
+      return res.status(500).json({ message: "Error al registrar los recordatorios" });
+    }
+
+    res.status(201).json({
+      message: "✅ Recordatorios registrados con éxito",
+      recordatorios: data[0]
+    });
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    res.status(500).json({ message: "Error al registrar los recordatorios" });
   }
 });
 
