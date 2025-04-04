@@ -738,7 +738,7 @@ app.post("/api/registrar/recordatorios/:id", async (req, res) => {
 
     res.status(201).json({
       message: "✅ Recordatorio registrado con éxito",
-      recordatorio,
+      recordatorios: recordatorio,
     });
 
   } catch (error) {
