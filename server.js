@@ -701,35 +701,121 @@ app.get("/api/obtener/recordatorios/:id", async (req, res) => {
   }
 });
 
-// Registrar recordatorios de una vaca
+
+
+// Ruta para registrar recordatorios y enviar email con EmailJS
 app.post("/api/registrar/recordatorios/:id", async (req, res) => {
   const { id } = req.params;
   const { Fecha, Titulo, Descripcion, Tipo, UsuarioId } = req.body;
 
-  console.log("📌 Datos recibidos para registrar los recordatorios de la vaca:", req.body);
+  console.log("📌 Datos recibidos para registrar recordatorio:", req.body);
 
   try {
+    // Verificar que el usuario exista
+    const { data: usuario, error: errorUsuario } = await supabase
+      .from('Usuario')
+      .select('Correo, Nombre')
+      .eq('id', UsuarioId)
+      .single();
+
+    if (errorUsuario || !usuario) {
+      console.error("❌ Usuario no encontrado:", errorUsuario);
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Insertar el recordatorio
     const { data, error } = await supabase
       .from('Recordatorio')
-      .insert([
-        { Fecha, Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }
-      ])
+      .insert([{ Fecha, Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }])
       .select();
 
     if (error) {
-      console.error("❌ Error al registrar los recordatorios:", error);
-      return res.status(500).json({ message: "Error al registrar los recordatorios" });
+      console.error("❌ Error al registrar el recordatorio:", error);
+      return res.status(500).json({ message: "Error al registrar el recordatorio" });
     }
 
+    const recordatorio = data[0];
+
     res.status(201).json({
-      message: "✅ Recordatorios registrados con éxito",
-      recordatorios: data[0]
+      message: "✅ Recordatorio registrado con éxito",
+      recordatorio,
     });
+
   } catch (error) {
-    console.error("Error en el servidor:", error);
-    res.status(500).json({ message: "Error al registrar los recordatorios" });
+    console.error("❌ Error en el servidor:", error);
+    res.status(500).json({ message: "Error al registrar el recordatorio" });
   }
 });
+
+import { createTransport } from 'nodemailer';
+
+//enviar correos automatizados
+app.get("/api/ping", async (req, res) => {
+  console.log("📡 Ping recibido. Verificando recordatorios programados para hoy...");
+
+  try {
+    const hoy = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+    // Buscar recordatorios para hoy
+    const { data: recordatorios, error } = await supabase
+      .from("Recordatorio")
+      .select("Fecha, Titulo, Descripcion, Tipo, UsuarioId")
+      .eq("Fecha", hoy);
+
+    if (error) {
+      console.error("❌ Error al obtener recordatorios:", error);
+      return res.status(500).json({ message: "Error al consultar recordatorios" });
+    }
+
+    if (!recordatorios.length) {
+      console.log("📭 No hay recordatorios para hoy.");
+      return res.status(200).json({ message: "No hay recordatorios programados para hoy." });
+    }
+
+    // Configurar el transportador
+    const transporter = createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASS
+      }
+    });
+
+    for (const r of recordatorios) {
+      const { data: usuario, error: errorUsuario } = await supabase
+        .from("Usuario")
+        .select("Correo, Nombre")
+        .eq("id", r.UsuarioId)
+        .single();
+
+      if (errorUsuario || !usuario) {
+        console.error(`⚠️ No se encontró el usuario con ID ${r.UsuarioId}`);
+        continue;
+      }
+
+      const mailOptions = {
+        from: `"Sistema de Recordatorios" <${process.env.EMAIL}>`,
+        to: usuario.Correo,
+        subject: `📌 Recordatorio: ${r.Titulo}`,
+        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}\nFecha programada: ${r.Fecha}`,
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Correo enviado a ${usuario.Correo}`);
+      } catch (err) {
+        console.error(`❌ Error al enviar el correo a ${usuario.Correo}:`, err.message);
+      }
+    }
+
+    res.status(200).json({ message: "Proceso completado. Correos enviados si correspondía." });
+
+  } catch (err) {
+    console.error("❌ Error en el proceso de ping:", err);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
 
 // Iniciar el servidor
 app.listen(port, () => {
