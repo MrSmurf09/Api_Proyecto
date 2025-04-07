@@ -709,12 +709,12 @@ app.post("/api/registrar/recordatorios/:id", async (req, res) => {
   const { Fecha, Titulo, Descripcion, Tipo, UsuarioId } = req.body;
 
   console.log("📌 Datos recibidos para registrar recordatorio:", req.body);
-  const fechaLocal = new Date(Fecha);
-  const fechaUTC = new Date(fechaLocal.getTime() - fechaLocal.getTimezoneOffset() * 60000);
+  const fechaColombia = new Date(Fecha);
+  const offsetColombia = 5 * 60; // Colombia está en UTC-5
+  const fechaUTC = new Date(fechaColombia.getTime() + offsetColombia * 60000); // SUMAR para ir a UTC
 
-  console.log("Local: ", fechaLocal.toString());
-  console.log("UTC: ", fechaUTC.toISOString());
-
+  console.log("💡 Fecha Colombia interpretada:", fechaColombia.toString());
+  console.log("📦 Fecha UTC para guardar:", fechaUTC.toISOString());
   try {
     // Verificar que el usuario exista
     const { data: usuario, error: errorUsuario } = await supabase
