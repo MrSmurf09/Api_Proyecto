@@ -712,6 +712,9 @@ app.post("/api/registrar/recordatorios/:id", async (req, res) => {
   const fechaLocal = new Date(Fecha);
   const fechaUTC = new Date(fechaLocal.getTime() - fechaLocal.getTimezoneOffset() * 60000);
 
+  console.log("Local:", fechaLocal.toString());
+  console.log("UTC:", fechaUTC.toISOString());
+
   try {
     // Verificar que el usuario exista
     const { data: usuario, error: errorUsuario } = await supabase
