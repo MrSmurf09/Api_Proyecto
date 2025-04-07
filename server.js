@@ -751,16 +751,21 @@ import { createTransport } from 'nodemailer';
 
 //enviar correos automatizados
 app.get("/api/recordatorio/enviar", async (req, res) => {
-  console.log("📡 Ping recibido. Verificando recordatorios programados para hoy...");
+  console.log("⏰ Verificando recordatorios para enviar con 1 hora de anticipación...");
 
   try {
-    const hoy = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const ahora = new Date();
+    const margen = 2 * 60 * 1000; // 2 minutos de margen (en milisegundos)
 
-    // Buscar recordatorios para hoy
+    const desde = new Date(ahora.getTime() + 60 * 60 * 1000 - margen);
+    const hasta = new Date(ahora.getTime() + 60 * 60 * 1000 + margen);
+
     const { data: recordatorios, error } = await supabase
       .from("Recordatorio")
-      .select("Fecha, Titulo, Descripcion, Tipo, UsuarioId")
-      .eq("Fecha", hoy);
+      .select("id, FechaHora, Titulo, Descripcion, Tipo, UsuarioId, Enviado")
+      .eq("Enviado", false)
+      .gte("FechaHora", desde.toISOString())
+      .lte("FechaHora", hasta.toISOString());
 
     if (error) {
       console.error("❌ Error al obtener recordatorios:", error);
@@ -768,11 +773,10 @@ app.get("/api/recordatorio/enviar", async (req, res) => {
     }
 
     if (!recordatorios.length) {
-      console.log("📭 No hay recordatorios para hoy.");
-      return res.status(200).json({ message: "No hay recordatorios programados para hoy." });
+      console.log("📭 No hay recordatorios para enviar ahora.");
+      return res.status(200).json({ message: "Sin recordatorios próximos." });
     }
 
-    // Configurar el transportador
     const transporter = createTransport({
       service: 'gmail',
       auth: {
@@ -797,27 +801,39 @@ app.get("/api/recordatorio/enviar", async (req, res) => {
         from: `"Sistema de Recordatorios" <${process.env.EMAIL}>`,
         to: usuario.Correo,
         subject: `📌 Recordatorio: ${r.Titulo}`,
-        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}\nFecha programada: ${r.Fecha}`,
+        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio programado para las ${new Date(r.FechaHora).toLocaleTimeString()}:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}`
       };
 
       try {
         await transporter.sendMail(mailOptions);
         console.log(`✅ Correo enviado a ${usuario.Correo}`);
+
+        // Marcar como enviado
+        await supabase
+          .from("Recordatorio")
+          .update({ Enviado: true })
+          .eq("id", r.id);
       } catch (err) {
         console.error(`❌ Error al enviar el correo a ${usuario.Correo}:`, err.message);
       }
     }
 
-    res.status(200).json({ message: "Proceso completado. Correos enviados si correspondía." });
+    res.status(200).json({ message: "Correos enviados (si aplicaba)" });
 
   } catch (err) {
-    console.error("❌ Error en el proceso de ping:", err);
+    console.error("❌ Error en el proceso:", err);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
 
 app.get('/api/ping', (req, res) => {
-  res.status(200).send('pong');
+  try {
+    console.log("Ping recibido");
+    res.status(200).send('pong');
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
 });
 
 

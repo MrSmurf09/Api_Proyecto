@@ -2,7 +2,7 @@ name: Ping Render Server
 
 on:
   schedule:
-    - cron: '0 13 * * *' # Todos los días a las 8 AM Colombia (13 UTC)
+    - cron: '0 * * * *' # para que suene cada hora
 
 jobs:
   ping:
