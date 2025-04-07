@@ -765,6 +765,9 @@ app.get("/api/recordatorio/enviar", async (req, res) => {
     const desde = new Date(ahora.getTime() + 60 * 60 * 1000 - margen);
     const hasta = new Date(ahora.getTime() + 60 * 60 * 1000 + margen);
 
+    console.log("🕐 Ahora: ", ahora.toISOString());
+    console.log("🔍 Buscando entre: ", desde.toISOString(), "y", hasta.toISOString());
+
     const { data: recordatorios, error } = await supabase
       .from("Recordatorio")
       .select("id, Fecha, Titulo, Descripcion, Tipo, UsuarioId, Enviado")
