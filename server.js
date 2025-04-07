@@ -750,7 +750,7 @@ app.post("/api/registrar/recordatorios/:id", async (req, res) => {
 import { createTransport } from 'nodemailer';
 
 //enviar correos automatizados
-app.get("/api/ping", async (req, res) => {
+app.get("/api/recordatorio/enviar", async (req, res) => {
   console.log("📡 Ping recibido. Verificando recordatorios programados para hoy...");
 
   try {
@@ -814,6 +814,10 @@ app.get("/api/ping", async (req, res) => {
     console.error("❌ Error en el proceso de ping:", err);
     res.status(500).json({ message: "Error en el servidor" });
   }
+});
+
+app.get('/api/ping', (req, res) => {
+  res.status(200).send('pong');
 });
 
 

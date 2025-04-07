@@ -10,4 +10,4 @@ jobs:
 
     steps:
       - name: Hacer ping al backend de Render
-        run: curl -s https://api-proyecto-jkec.onrender.com/api/ping
+        run: curl -s https://api-proyecto-jkec.onrender.com/api/recordatorio/enviar
