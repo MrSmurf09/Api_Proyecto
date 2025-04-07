@@ -709,7 +709,8 @@ app.post("/api/registrar/recordatorios/:id", async (req, res) => {
   const { Fecha, Titulo, Descripcion, Tipo, UsuarioId } = req.body;
 
   console.log("📌 Datos recibidos para registrar recordatorio:", req.body);
-
+  const fechaUTC = new Date(Fecha);
+  
   try {
     // Verificar que el usuario exista
     const { data: usuario, error: errorUsuario } = await supabase
@@ -726,7 +727,7 @@ app.post("/api/registrar/recordatorios/:id", async (req, res) => {
     // Insertar el recordatorio
     const { data, error } = await supabase
       .from('Recordatorio')
-      .insert([{ Fecha, Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }])
+      .insert([{ Fecha: fechaUTC.toISOString(), Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }])
       .select();
 
     if (error) {
