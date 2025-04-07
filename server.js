@@ -709,8 +709,9 @@ app.post("/api/registrar/recordatorios/:id", async (req, res) => {
   const { Fecha, Titulo, Descripcion, Tipo, UsuarioId } = req.body;
 
   console.log("📌 Datos recibidos para registrar recordatorio:", req.body);
-  const fechaUTC = new Date(Fecha);
-  
+  const fechaLocal = new Date(Fecha);
+  const fechaUTC = new Date(fechaLocal.getTime() - fechaLocal.getTimezoneOffset() * 60000);
+
   try {
     // Verificar que el usuario exista
     const { data: usuario, error: errorUsuario } = await supabase
