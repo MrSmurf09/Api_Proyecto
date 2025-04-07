@@ -762,10 +762,10 @@ app.get("/api/recordatorio/enviar", async (req, res) => {
 
     const { data: recordatorios, error } = await supabase
       .from("Recordatorio")
-      .select("id, FechaHora, Titulo, Descripcion, Tipo, UsuarioId, Enviado")
+      .select("id, Fecha, Titulo, Descripcion, Tipo, UsuarioId, Enviado")
       .eq("Enviado", false)
-      .gte("FechaHora", desde.toISOString())
-      .lte("FechaHora", hasta.toISOString());
+      .gte("Fecha", desde.toISOString())
+      .lte("Fecha", hasta.toISOString());
 
     if (error) {
       console.error("❌ Error al obtener recordatorios:", error);
@@ -801,7 +801,7 @@ app.get("/api/recordatorio/enviar", async (req, res) => {
         from: `"Sistema de Recordatorios" <${process.env.EMAIL}>`,
         to: usuario.Correo,
         subject: `📌 Recordatorio: ${r.Titulo}`,
-        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio programado para las ${new Date(r.FechaHora).toLocaleTimeString()}:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}`
+        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio programado para las ${new Date(r.Fecha).toLocaleTimeString()}:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}`
       };
 
       try {
