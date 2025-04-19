@@ -425,30 +425,21 @@ app.post("/api/potreros/:id", async (req, res) => {
 // ======== RUTAS DE VACAS ========
 
 // Obtener vacas de un potrero
-app.get("/api/vacas/:id", async (req, res) => {
-  const { id } = req.params;
-  console.log(`📌 Obteniendo vacas del potrero con ID: ${id}`);
+app.get("/api/vacas/:potreroId", async (req, res) => {
+  const { potreroId } = req.params;
 
-  try {
-    const { data, error } = await supabase
-      .from('Vaca')
-      .select('*')
-      .eq('PotreroId', id);
+  const { data, error } = await supabase.rpc("obtener_vacas_con_promedio", {
+    potrero_id: Number(potreroId)
+  });
 
-    if (error) {
-      console.error("❌ Error al obtener las vacas:", error);
-      return res.status(500).json({ message: "Error al obtener las vacas" });
-    }
-
-    res.status(200).json({
-      message: "✅ Vacas obtenidas con éxito",
-      vacas: data
-    });
-  } catch (error) {
-    console.error("Error en el servidor:", error);
-    res.status(500).json({ message: "Error al obtener las vacas" });
+  if (error) {
+    console.error("Error al obtener vacas:", error);
+    return res.status(500).json({ message: "Error al obtener las vacas" });
   }
+
+  res.status(200).json({ vacas: data });
 });
+
 
 // Registrar una vaca
 app.post("/vacas/nueva/:id", async (req, res) => {
