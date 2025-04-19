@@ -128,49 +128,34 @@ app.post("/usuario/login", async (req, res) => {
 app.post("/api/fincas", upload.single("Imagen"), async (req, res) => {
   const { Nombre, Descripcion } = req.body;
   const usuarioId = req.body.UsuarioId;
-  let imagenUrl = null;
+  let imagenPath = null;
 
   try {
-    // Si hay una imagen, subirla a Supabase Storage
     if (req.file) {
       const filePath = req.file.path;
       const fileExt = path.extname(req.file.originalname);
       const fileName = `${Date.now()}${fileExt}`;
-      
-      // Leer el archivo
+      const fullPath = `imagenes/${fileName}`;
       const fileBuffer = fs.readFileSync(filePath);
-      
-      // Subir a Supabase Storage
-      const { data, error } = await supabase
-        .storage
-        .from('fincas')
-        .upload(`imagenes/${fileName}`, fileBuffer, {
+
+      const { error: uploadError } = await supabase.storage
+        .from("fincas")
+        .upload(fullPath, fileBuffer, {
           contentType: req.file.mimetype,
         });
-      
-      if (error) {
-        console.error("Error al subir imagen:", error);
+
+      if (uploadError) {
+        console.error("Error al subir imagen:", uploadError);
         return res.status(500).json({ message: "Error al subir la imagen" });
       }
-      
-      // Obtener URL pública
-      const { data: urlData } = supabase
-        .storage
-        .from('fincas')
-        .getPublicUrl(`imagenes/${fileName}`);
-      
-      imagenUrl = urlData.publicUrl;
-      
-      // Eliminar archivo temporal
-      fs.unlinkSync(filePath);
+
+      imagenPath = fullPath;
+      fs.unlinkSync(filePath); // eliminar archivo temporal
     }
 
-    // Insertar finca en la base de datos
     const { data, error } = await supabase
-      .from('Finca')
-      .insert([
-        { Nombre, Descripcion, Imagen: imagenUrl, UsuarioId: usuarioId }
-      ])
+      .from("Finca")
+      .insert([{ Nombre, Descripcion, Imagen: imagenPath, UsuarioId: usuarioId }])
       .select();
 
     if (error) {
@@ -178,9 +163,17 @@ app.post("/api/fincas", upload.single("Imagen"), async (req, res) => {
       return res.status(500).json({ message: "Error al registrar la finca" });
     }
 
+    // Obtener URL pública si hay imagen
+    if (data[0].Imagen) {
+      const { data: urlData } = supabase.storage
+        .from("fincas")
+        .getPublicUrl(data[0].Imagen);
+      data[0].ImagenUrl = urlData.publicUrl;
+    }
+
     res.status(201).json({
       message: "Finca registrada con éxito",
-      finca: data[0]
+      finca: data[0],
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
@@ -191,26 +184,36 @@ app.post("/api/fincas", upload.single("Imagen"), async (req, res) => {
 // Obtener fincas de un usuario
 app.get("/api/fincas", async (req, res) => {
   const usuarioId = req.query.UsuarioId;
-  console.log("UsuarioId:", usuarioId);
-
   if (!usuarioId) {
     return res.status(400).json({ message: "UsuarioId no proporcionado" });
   }
 
   try {
     const { data, error } = await supabase
-      .from('Finca')
-      .select('*')
-      .eq('UsuarioId', usuarioId);
+      .from("Finca")
+      .select("*")
+      .eq("UsuarioId", usuarioId);
 
     if (error) {
       console.error("Error al obtener fincas:", error);
       return res.status(500).json({ message: "Error al obtener las fincas" });
     }
 
+    // Agregar URL pública a cada finca
+    const fincasConUrl = data.map((finca) => {
+      if (finca.Imagen) {
+        const { data: urlData } = supabase
+          .storage
+          .from("fincas")
+          .getPublicUrl(finca.Imagen);
+        finca.ImagenUrl = urlData.publicUrl;
+      }
+      return finca;
+    });
+
     res.status(200).json({
       message: "Fincas obtenidas con éxito",
-      fincas: data
+      fincas: fincasConUrl,
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
@@ -222,14 +225,14 @@ app.get("/api/fincas", async (req, res) => {
 app.put("/api/fincas/:id", upload.single("Imagen"), async (req, res) => {
   const { id } = req.params;
   const { Nombre, Descripcion } = req.body;
-  let imagenUrl = null;
+  let nuevaImagenPath = null;
 
   try {
-    // Obtener la finca actual para verificar si ya tiene imagen
+    // Obtener la finca actual
     const { data: fincaActual, error: errorFinca } = await supabase
-      .from('Finca')
-      .select('Imagen')
-      .eq('id', id)
+      .from("Finca")
+      .select("Imagen")
+      .eq("id", id)
       .single();
 
     if (errorFinca) {
@@ -237,55 +240,48 @@ app.put("/api/fincas/:id", upload.single("Imagen"), async (req, res) => {
       return res.status(500).json({ message: "Error al actualizar la finca" });
     }
 
-    // Si hay una nueva imagen, subirla a Supabase Storage
+    // Subir nueva imagen si se envió
     if (req.file) {
       const filePath = req.file.path;
       const fileExt = path.extname(req.file.originalname);
       const fileName = `${Date.now()}${fileExt}`;
-      
-      // Leer el archivo
+      const fullPath = `imagenes/${fileName}`;
       const fileBuffer = fs.readFileSync(filePath);
-      
-      // Subir a Supabase Storage
-      const { data, error } = await supabase
+
+      const { error: uploadError } = await supabase
         .storage
-        .from('fincas')
-        .upload(`imagenes/${fileName}`, fileBuffer, {
+        .from("fincas")
+        .upload(fullPath, fileBuffer, {
           contentType: req.file.mimetype,
         });
-      
-      if (error) {
-        console.error("Error al subir imagen:", error);
+
+      if (uploadError) {
+        console.error("Error al subir imagen:", uploadError);
         return res.status(500).json({ message: "Error al subir la imagen" });
       }
-      
-      // Obtener URL pública
-      const { data: urlData } = supabase
-        .storage
-        .from('fincas')
-        .getPublicUrl(`imagenes/${fileName}`);
-      
-      imagenUrl = urlData.publicUrl;
-      
-      // Eliminar archivo temporal
+
+      nuevaImagenPath = fullPath;
       fs.unlinkSync(filePath);
+
+      // Eliminar imagen anterior si existía
+      if (fincaActual?.Imagen) {
+        await supabase.storage.from("fincas").remove([fincaActual.Imagen]);
+      }
     }
 
-    // Actualizar finca en la base de datos
     const updateData = {
       Nombre,
-      Descripcion
+      Descripcion,
     };
 
-    // Solo actualizar la imagen si hay una nueva
-    if (imagenUrl) {
-      updateData.Imagen = imagenUrl;
+    if (nuevaImagenPath) {
+      updateData.Imagen = nuevaImagenPath;
     }
 
     const { data, error } = await supabase
-      .from('Finca')
+      .from("Finca")
       .update(updateData)
-      .eq('id', id)
+      .eq("id", id)
       .select();
 
     if (error) {
@@ -293,9 +289,18 @@ app.put("/api/fincas/:id", upload.single("Imagen"), async (req, res) => {
       return res.status(500).json({ message: "Error al actualizar la finca" });
     }
 
+    // Agregar URL pública si hay imagen
+    if (data[0].Imagen) {
+      const { data: urlData } = supabase
+        .storage
+        .from("fincas")
+        .getPublicUrl(data[0].Imagen);
+      data[0].ImagenUrl = urlData.publicUrl;
+    }
+
     res.status(200).json({
       message: "Finca actualizada con éxito",
-      finca: data[0]
+      finca: data[0],
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
@@ -306,51 +311,34 @@ app.put("/api/fincas/:id", upload.single("Imagen"), async (req, res) => {
 // Eliminar finca
 app.delete("/api/fincas/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("ID recibido para eliminar:", id);
 
   try {
-    // Obtener la finca para verificar si tiene imagen
     const { data: finca, error: errorFinca } = await supabase
-      .from('Finca')
-      .select('Imagen')
-      .eq('id', id)
+      .from("Finca")
+      .select("Imagen")
+      .eq("id", id)
       .single();
 
-    if (errorFinca && errorFinca.code !== 'PGRST116') { // No es error si no encuentra la finca
+    if (errorFinca && errorFinca.code !== "PGRST116") {
       console.error("Error al obtener finca:", errorFinca);
       return res.status(500).json({ message: "Error al eliminar la finca" });
     }
 
-    // Si la finca tiene una imagen en Storage, eliminarla
     if (finca && finca.Imagen) {
-      try {
-        // Extraer el nombre del archivo de la URL
-        const url = new URL(finca.Imagen);
-        const pathParts = url.pathname.split('/');
-        const fileName = pathParts[pathParts.length - 1];
-        const filePath = `imagenes/${fileName}`;
+      const { error: deleteError } = await supabase
+        .storage
+        .from("fincas")
+        .remove([finca.Imagen]);
 
-        // Eliminar archivo de Storage
-        const { error: deleteError } = await supabase
-          .storage
-          .from('fincas')
-          .remove([filePath]);
-
-        if (deleteError) {
-          console.error("Error al eliminar imagen:", deleteError);
-          // Continuamos con la eliminación de la finca aunque falle la eliminación de la imagen
-        }
-      } catch (e) {
-        console.error("Error al procesar la URL de la imagen:", e);
-        // Continuamos con la eliminación de la finca
+      if (deleteError) {
+        console.error("Error al eliminar imagen:", deleteError);
       }
     }
 
-    // Eliminar la finca
     const { error } = await supabase
-      .from('Finca')
+      .from("Finca")
       .delete()
-      .eq('id', id);
+      .eq("id", id);
 
     if (error) {
       console.error("Error al eliminar finca:", error);
@@ -359,7 +347,7 @@ app.delete("/api/fincas/:id", async (req, res) => {
 
     res.status(200).json({
       message: "Finca eliminada con éxito",
-      finca: { id }
+      finca: { id },
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
@@ -367,18 +355,17 @@ app.delete("/api/fincas/:id", async (req, res) => {
   }
 });
 
+
 // ======== RUTAS DE POTREROS ========
 
-// Obtener potreros de una finca
 app.get("/api/potreros/:id", async (req, res) => {
   const { id } = req.params;
   console.log("ID de la finca:", id);
 
   try {
+    // Consulta SQL con el conteo de vacas y el promedio de producción de leche
     const { data, error } = await supabase
-      .from('Potrero')
-      .select('*')
-      .eq('FincaId', id);
+      .rpc('obtener_datos_potreros', { finca_id: id }); // Usamos la función almacenada `obtener_datos_potreros`
 
     if (error) {
       console.error("Error al obtener potreros:", error);
@@ -386,8 +373,8 @@ app.get("/api/potreros/:id", async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Potreros obtenidos con exito",
-      potreros: data
+      message: "Potreros obtenidos con éxito",
+      potreros: data, // Devuelve los datos de los potreros, vacas y promedio de leche
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
