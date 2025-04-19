@@ -199,7 +199,7 @@ app.get("/api/fincas", async (req, res) => {
 
   try {
     const { data, error } = await supabase
-      .from('Finca')
+      .from('vista_fincas_con_potreros')
       .select('*')
       .eq('UsuarioId', usuarioId);
 
