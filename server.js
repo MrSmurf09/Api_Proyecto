@@ -13,7 +13,7 @@ import fs from 'fs';
 // Configuración básica
 const app = express();
 const port = process.env.PORT;
-const SECRET_KEY = "ControlBovino";
+const SECRET_KEY = process.env.JWT_SECRET;
 
 // Middleware
 app.use(cors());
@@ -50,6 +50,27 @@ const upload = multer({ storage });
 
 // Servir archivos estáticos
 app.use('/uploads', express.static(uploadsDir));
+
+// funcion para verificar el token
+const verificarToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  // Verifica si hay header de autorización con formato "Bearer <token>"
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Token no proporcionado" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded; // puedes acceder luego a req.user.id, etc.
+    next(); // continúa a la siguiente función
+  } catch (err) {
+    return res.status(403).json({ message: "Token inválido" });
+  }
+};
+
 
 // ======== RUTAS DE USUARIOS ========
 
@@ -109,11 +130,12 @@ app.post("/usuario/login", async (req, res) => {
     }
 
     // Generar token JWT
-    const token = jwt.sign({ id: usuarios.id }, SECRET_KEY);
+    const token = jwt.sign({ nombre: usuarios.Nombre }, SECRET_KEY, { expiresIn: '1d' });
 
     res.status(200).json({
       message: "Inicio de sesión exitoso",
       userId: usuarios.id,
+      Nombre: usuarios.Nombre,
       token
     });
   } catch (error) {
@@ -189,7 +211,7 @@ app.post("/api/fincas", upload.single("Imagen"), async (req, res) => {
 });
 
 // Obtener fincas de un usuario
-app.get("/api/fincas", async (req, res) => {
+app.get("/api/fincas", verificarToken, async (req, res) => {
   const usuarioId = req.query.UsuarioId;
   console.log("UsuarioId:", usuarioId);
 
@@ -199,7 +221,7 @@ app.get("/api/fincas", async (req, res) => {
 
   try {
     const { data, error } = await supabase
-      .from('Finca')
+      .from('vista_fincas_con_potreros')
       .select('*')
       .eq('UsuarioId', usuarioId);
 
@@ -367,18 +389,17 @@ app.delete("/api/fincas/:id", async (req, res) => {
   }
 });
 
+
 // ======== RUTAS DE POTREROS ========
 
-// Obtener potreros de una finca
 app.get("/api/potreros/:id", async (req, res) => {
   const { id } = req.params;
   console.log("ID de la finca:", id);
 
   try {
+    // Consulta SQL con el conteo de vacas y el promedio de producción de leche
     const { data, error } = await supabase
-      .from('Potrero')
-      .select('*')
-      .eq('FincaId', id);
+      .rpc('obtener_datos_potreros', { finca_id: id }); // Usamos la función almacenada `obtener_datos_potreros`
 
     if (error) {
       console.error("Error al obtener potreros:", error);
@@ -386,8 +407,8 @@ app.get("/api/potreros/:id", async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Potreros obtenidos con exito",
-      potreros: data
+      message: "Potreros obtenidos con éxito",
+      potreros: data, // Devuelve los datos de los potreros, vacas y promedio de leche
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
@@ -426,30 +447,21 @@ app.post("/api/potreros/:id", async (req, res) => {
 // ======== RUTAS DE VACAS ========
 
 // Obtener vacas de un potrero
-app.get("/api/vacas/:id", async (req, res) => {
-  const { id } = req.params;
-  console.log(`📌 Obteniendo vacas del potrero con ID: ${id}`);
+app.get("/api/vacas/:potreroId", async (req, res) => {
+  const { potreroId } = req.params;
 
-  try {
-    const { data, error } = await supabase
-      .from('Vaca')
-      .select('*')
-      .eq('PotreroId', id);
+  const { data, error } = await supabase.rpc("obtener_vacas_con_promedio", {
+    potrero_id: Number(potreroId)
+  });
 
-    if (error) {
-      console.error("❌ Error al obtener las vacas:", error);
-      return res.status(500).json({ message: "Error al obtener las vacas" });
-    }
-
-    res.status(200).json({
-      message: "✅ Vacas obtenidas con éxito",
-      vacas: data
-    });
-  } catch (error) {
-    console.error("Error en el servidor:", error);
-    res.status(500).json({ message: "Error al obtener las vacas" });
+  if (error) {
+    console.error("Error al obtener vacas:", error);
+    return res.status(500).json({ message: "Error al obtener las vacas" });
   }
+
+  res.status(200).json({ vacas: data });
 });
+
 
 // Registrar una vaca
 app.post("/vacas/nueva/:id", async (req, res) => {
@@ -701,35 +713,149 @@ app.get("/api/obtener/recordatorios/:id", async (req, res) => {
   }
 });
 
-// Registrar recordatorios de una vaca
+
+
+// Ruta para registrar recordatorios y enviar email con EmailJS
 app.post("/api/registrar/recordatorios/:id", async (req, res) => {
   const { id } = req.params;
   const { Fecha, Titulo, Descripcion, Tipo, UsuarioId } = req.body;
 
-  console.log("📌 Datos recibidos para registrar los recordatorios de la vaca:", req.body);
+  console.log("📌 Datos recibidos para registrar recordatorio:", req.body);
+  const fechaColombia = new Date(Fecha);
+  const offsetColombia = 5 * 60; // Colombia está en UTC-5
+  const fechaUTC = new Date(fechaColombia.getTime() + offsetColombia * 60000); // SUMAR para ir a UTC
 
+  console.log("💡 Fecha Colombia interpretada:", fechaColombia.toString());
+  console.log("📦 Fecha UTC para guardar:", fechaUTC.toISOString());
   try {
+    // Verificar que el usuario exista
+    const { data: usuario, error: errorUsuario } = await supabase
+      .from('Usuario')
+      .select('Correo, Nombre')
+      .eq('id', UsuarioId)
+      .single();
+
+    if (errorUsuario || !usuario) {
+      console.error("❌ Usuario no encontrado:", errorUsuario);
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Insertar el recordatorio
     const { data, error } = await supabase
       .from('Recordatorio')
-      .insert([
-        { Fecha, Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }
-      ])
+      .insert([{ Fecha: fechaUTC.toISOString(), Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }])
       .select();
 
     if (error) {
-      console.error("❌ Error al registrar los recordatorios:", error);
-      return res.status(500).json({ message: "Error al registrar los recordatorios" });
+      console.error("❌ Error al registrar el recordatorio:", error);
+      return res.status(500).json({ message: "Error al registrar el recordatorio" });
     }
 
+    const recordatorio = data[0];
+
     res.status(201).json({
-      message: "✅ Recordatorios registrados con éxito",
-      recordatorios: data[0]
+      message: "✅ Recordatorio registrado con éxito",
+      recordatorios: recordatorio,
     });
+
   } catch (error) {
-    console.error("Error en el servidor:", error);
-    res.status(500).json({ message: "Error al registrar los recordatorios" });
+    console.error("❌ Error en el servidor:", error);
+    res.status(500).json({ message: "Error al registrar el recordatorio" });
   }
 });
+
+import { createTransport } from 'nodemailer';
+
+//enviar correos automatizados
+app.get("/api/recordatorio/enviar", async (req, res) => {
+  console.log("⏰ Verificando recordatorios para enviar con 1 hora de anticipación...");
+
+  try {
+    const ahora = new Date();
+    const margen = 2 * 60 * 1000; // 2 minutos de margen (en milisegundos)
+
+    const desde = new Date(ahora.getTime() + 60 * 60 * 1000 - margen);
+    const hasta = new Date(ahora.getTime() + 60 * 60 * 1000 + margen);
+
+    console.log("🕐 Ahora: ", ahora.toISOString());
+    console.log("🔍 Buscando entre: ", desde.toISOString(), "y", hasta.toISOString());
+
+    const { data: recordatorios, error } = await supabase
+      .from("Recordatorio")
+      .select("id, Fecha, Titulo, Descripcion, Tipo, UsuarioId, Enviado")
+      .eq("Enviado", false)
+      .gte("Fecha", desde.toISOString())
+      .lte("Fecha", hasta.toISOString());
+
+    if (error) {
+      console.error("❌ Error al obtener recordatorios:", error);
+      return res.status(500).json({ message: "Error al consultar recordatorios" });
+    }
+
+    if (!recordatorios.length) {
+      console.log("📭 No hay recordatorios para enviar ahora.");
+      return res.status(200).json({ message: "Sin recordatorios próximos." });
+    }
+
+    const transporter = createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASS
+      }
+    });
+
+    for (const r of recordatorios) {
+      const { data: usuario, error: errorUsuario } = await supabase
+        .from("Usuario")
+        .select("Correo, Nombre")
+        .eq("id", r.UsuarioId)
+        .single();
+
+      if (errorUsuario || !usuario) {
+        console.error(`⚠️ No se encontró el usuario con ID ${r.UsuarioId}`);
+        continue;
+      }
+
+      const mailOptions = {
+        from: `"Sistema de Recordatorios" <${process.env.EMAIL}>`,
+        to: usuario.Correo,
+        subject: `📌 Recordatorio: ${r.Titulo}`,
+        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio programado para las ${new Date(r.Fecha).toLocaleTimeString()}:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}`
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Correo enviado a ${usuario.Correo}`);
+
+        // Marcar como enviado
+        await supabase
+          .from("Recordatorio")
+          .update({ Enviado: true })
+          .eq("id", r.id);
+      } catch (err) {
+        console.error(`❌ Error al enviar el correo a ${usuario.Correo}:`, err.message);
+      }
+    }
+
+    res.status(200).json({ message: "Correos enviados (si aplicaba)" });
+
+  } catch (err) {
+    console.error("❌ Error en el proceso:", err);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
+app.get('/api/ping', (req, res) => {
+  try {
+    console.log("Ping recibido");
+    res.status(200).send('pong');
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
 
 // Iniciar el servidor
 app.listen(port, () => {
@@ -738,4 +864,3 @@ app.listen(port, () => {
 
 // Mostrar que el servidor está configurado correctamente
 console.log("Servidor de Control Bovino configurado con Supabase");
-
