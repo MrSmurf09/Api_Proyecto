@@ -392,7 +392,7 @@ app.delete("/api/fincas/:id", async (req, res) => {
 
 // ======== RUTAS DE POTREROS ========
 
-app.get("/api/potreros/:id", async (req, res) => {
+app.get("/api/potreros/:id", verificarToken, async (req, res) => {
   const { id } = req.params;
   console.log("ID de la finca:", id);
 
@@ -447,7 +447,7 @@ app.post("/api/potreros/:id", async (req, res) => {
 // ======== RUTAS DE VACAS ========
 
 // Obtener vacas de un potrero
-app.get("/api/vacas/:potreroId", async (req, res) => {
+app.get("/api/vacas/:potreroId", verificarToken, async (req, res) => {
   const { potreroId } = req.params;
 
   const { data, error } = await supabase.rpc("obtener_vacas_con_promedio", {
@@ -515,7 +515,7 @@ app.post("/vacas/nueva/:id", async (req, res) => {
 });
 
 // Obtener perfil de una vaca
-app.get("/api/vacas/perfil/:id", async (req, res) => {
+app.get("/api/vacas/perfil/:id", verificarToken, async (req, res) => {
   const { id } = req.params;
   console.log(`📌 Obteniendo perfil de la vaca con ID: ${id}`);
 
