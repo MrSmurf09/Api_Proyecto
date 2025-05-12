@@ -84,4 +84,31 @@ router.post("/registrar/leche/:id", async (req, res) => {
   }
 })
 
+// Eliminar producción de leche
+router.delete("/eliminar/produccion/:id", async (req, res) => {
+  const { id } = req.params
+  console.log("ID del vaca:", id)
+
+  try {
+    const { data, error } = await supabase
+      .from("ProduccionLeche")
+      .delete()
+      .match({ id: id })
+      .select()
+
+    if (error) {
+      console.error("❌ Error al eliminar la produccion de leche:", error)
+      return res.status(500).json({ message: "Error al eliminar la produccion de leche" })
+    }
+
+    res.status(200).json({
+      message: "✅ Produccion de leche eliminada con éxito",
+      registro: data[0],
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error al eliminar la produccion de leche" })
+  }
+})
+
 export default router

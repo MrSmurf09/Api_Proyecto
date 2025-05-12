@@ -79,6 +79,33 @@ router.post("/registrar/recordatorios/:id", async (req, res) => {
   }
 })
 
+//eliminar recordatorios de una vaca
+router.delete("/recordatorios/eliminar/:id", async (req, res) => {
+  const { id } = req.params
+  console.log("ID del vaca:", id)
+
+  try {
+    const { data, error } = await supabase
+      .from("Recordatorio")
+      .delete()
+      .match({ id: id })
+      .select()
+
+    if (error) {
+      console.error("❌ Error al eliminar los recordatorios:", error)
+      return res.status(500).json({ message: "Error al eliminar los recordatorios" })
+    }
+
+    res.status(200).json({
+      message: "✅ Recordatorios eliminados con éxito",
+      recordatorios: data[0],
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error al eliminar los recordatorios" })
+  }
+})
+
 // Enviar correos automatizados
 router.get("/recordatorio/enviar", async (req, res) => {
   console.log("⏰ Verificando recordatorios para enviar con 1 hora de anticipación...")

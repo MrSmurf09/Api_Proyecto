@@ -54,4 +54,30 @@ router.post("/:id", async (req, res) => {
   }
 })
 
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params
+  console.log("ID del potrero:", id)
+
+  try {
+    const { data, error } = await supabase
+      .from("Potrero")
+      .delete()
+      .match({ id: id })
+      .select()
+
+    if (error) {
+      console.error("Error al eliminar el potrero:", error)
+      return res.status(500).json({ message: "Error al eliminar el potrero" })
+    }
+
+    res.status(200).json({
+      message: "Potrero eliminado con exito",
+      potrero: data[0],
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error al eliminar el potrero" })
+  }
+})
+
 export default router

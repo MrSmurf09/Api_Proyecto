@@ -58,4 +58,31 @@ router.post("/registrar/procesos/medicos/:id", async (req, res) => {
   }
 })
 
+//eliminar procesos de medico de una vaca
+router.delete("/procesos/medicos/eliminar/:id", async (req, res) => {
+  const { id } = req.params
+  console.log("ID del vaca:", id)
+
+  try {
+    const { data, error } = await supabase
+      .from("ProcedimientoMedico")
+      .delete()
+      .match({ id: id })
+      .select()
+
+    if (error) {
+      console.error("❌ Error al eliminar los procesos de medico:", error)
+      return res.status(500).json({ message: "Error al eliminar los procesos de medico" })
+    }
+
+    res.status(200).json({
+      message: "✅ Procesos de medico eliminados con éxito",
+      procesos: data[0],
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error al eliminar los procesos de medico" })
+  }
+})
+
 export default router

@@ -83,4 +83,30 @@ router.get("/vacas/perfil/:id", verificarToken, async (req, res) => {
   }
 })
 
+router.delete("/vacas/eliminar/:id", async (req, res) => {
+  const { id } = req.params
+  console.log("ID del vaca:", id)
+
+  try {
+    const { data, error } = await supabase
+      .from("Vaca")
+      .delete()
+      .match({ id: id })
+      .select()
+
+    if (error) {
+      console.error("❌ Error al eliminar la vaca:", error)
+      return res.status(500).json({ message: "Error al eliminar la vaca" })
+    }
+
+    res.status(200).json({
+      message: "✅ Vaca eliminada con éxito",
+      vaca: data[0],
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error al eliminar la vaca" })
+  }
+})
+
 export default router
