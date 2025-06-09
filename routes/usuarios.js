@@ -97,6 +97,7 @@ router.post(
         id: usuario.id,
         nombre: usuario.Nombre,
         correo: usuario.Correo,
+        rol: usuario.Rol,
       },
       SECRET_KEY,
       { expiresIn: "1d" },
@@ -106,6 +107,7 @@ router.post(
       message: "Inicio de sesión exitoso",
       userId: usuario.id,
       Nombre: usuario.Nombre,
+      rol: usuario.Rol,
       token,
     })
   }),
