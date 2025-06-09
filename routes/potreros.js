@@ -54,7 +54,7 @@ router.post("/:id", async (req, res) => {
   }
 })
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verificarToken, async (req, res) => {
   const { id } = req.params
   console.log("ID del potrero:", id)
 

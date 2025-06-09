@@ -41,7 +41,7 @@ router.post(
   "/registrar",
   validate(registroValidations),
   asyncHandler(async (req, res) => {
-    const { Nombre, Correo, Contraseña, Telefono } = req.body
+    const { Nombre, Correo, Rol, Contraseña, Telefono } = req.body
 
     // Verificar si el correo ya existe
     const { data: existingUser } = await supabase.from("Usuario").select("id").eq("Correo", Correo).single()
@@ -56,7 +56,7 @@ router.post(
     // Insertar usuario en Supabase
     const { data, error } = await supabase
       .from("Usuario")
-      .insert([{ Nombre, Correo, Contraseña: hashedPassword, Telefono }])
+      .insert([{ Nombre, Correo, Contraseña: hashedPassword, Telefono, Rol }])
       .select()
 
     if (error) {

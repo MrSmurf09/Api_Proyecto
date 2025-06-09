@@ -83,7 +83,7 @@ router.get("/vacas/perfil/:id", verificarToken, async (req, res) => {
   }
 })
 
-router.delete("/vacas/eliminar/:id", async (req, res) => {
+router.delete("/vacas/eliminar/:id", verificarToken, async (req, res) => {
   const { id } = req.params
   console.log("ID del vaca:", id)
 
