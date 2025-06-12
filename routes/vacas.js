@@ -109,4 +109,29 @@ router.delete("/vacas/eliminar/:id", verificarToken, async (req, res) => {
   }
 })
 
+
+router.get("/veterinario/vacas/:id", verificarToken, async (req, res) => {
+  const { id } = req.params
+  console.log(`📌 Obteniendo vacas de veterinario con ID: ${id}`)
+
+  try {
+    const { data, error } = await supabase.from("Vaca").select("*").eq("Veterinario", id)
+    
+    if (error) {
+      console.error("❌ Error al obtener el perfil de la vaca:", error)
+      return res.status(500).json({ message: "Error al obtener el perfil de la vaca" })
+    }
+
+    res.status(200).json({
+      message: "✅ perfil de la vaca obtenido con éxito",
+      vacas: data,
+    })
+
+    
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error al obtener el perfil de la vaca" })
+  }
+})
+
 export default router
