@@ -134,4 +134,58 @@ router.get("/veterinario/vacas/:id", verificarToken, async (req, res) => {
   }
 })
 
+// Obtener veterinarios
+router.get("/get/veterinarios", verificarToken, async (req, res) => {
+  console.log("Obteniendo veterinarios")
+
+  try {
+    const { data, error } = await supabase.from("Usuario").select("*").eq("Rol", "Veterinario")
+
+    if (error) {
+      console.error("❌ Error al obtener el perfil de la vaca:", error)
+      return res.status(500).json({ message: "Error al obtener el perfil de la vaca" })
+    }
+
+    res.status(200).json({
+      message: "✅ perfil de la vaca obtenido con éxito",
+      veterinarios: data,
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error al obtener el perfil de la vaca" })
+  }
+})
+
+router.put("/veterinario/asignar/:id", verificarToken, async (req, res) => {
+  const { id } = req.params
+  const { veterinario_id } = req.body
+  console.log(`📌 Asignando veterinario con ID: ${veterinario_id} a vaca: ${id}`)
+
+  try {
+    const { data, error } = await supabase
+      .from("Vaca")
+      .update({ Veterinario: veterinario_id })
+      .eq("id", id)
+      .select()  // Para asegurar que se devuelvan datos
+
+    if (error) {
+      console.error("❌ Error al asignar veterinario:", error)
+      return res.status(500).json({ message: "Error al asignar veterinario" })
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({ message: "Vaca no encontrada o no actualizada" })
+    }
+
+    res.status(200).json({
+      message: "✅ Veterinario asignado correctamente",
+      veterinario_id: data[0].Veterinario,
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error en el servidor al asignar veterinario" })
+  }
+})
+
+
 export default router
