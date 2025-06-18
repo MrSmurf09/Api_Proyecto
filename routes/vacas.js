@@ -187,5 +187,53 @@ router.put("/veterinario/asignar/:id", verificarToken, async (req, res) => {
   }
 })
 
+//rutas para registrar embarazo y desparasitacion
+router.put("/vacas/embarazo/:id", verificarToken, async (req, res) => {
+  const { id } = req.params
+  const { fechaEmbarazo } = req.body
+  console.log(`📌 Registrando embarazo con ID: ${id}`)
+  try {
+    const { data, error } = await supabase
+      .from("Vaca")
+      .update({ Fecha_Embarazo: fechaEmbarazo })
+      .eq("id", id)
+      .select()  // Para asegurar que se devuelvan datos
+    if (error) {
+      console.error("❌ Error al registrar embarazo:", error)
+      return res.status(500).json({ message: "Error al registrar embarazo" })
+    }
+    res.status(200).json({
+      message: "✅ Embarazo registrado correctamente",
+      vaca: data[0],
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error en el servidor al registrar embarazo" })
+  }
+})
+
+router.put("/vacas/desparasitacion/:id", verificarToken, async (req, res) => {
+  const { id } = req.params
+  const { fechaDesparasitacion } = req.body
+  console.log(`📌 Registrando desparasitación con ID: ${id}`)
+  try {
+    const { data, error } = await supabase
+      .from("Vaca")
+      .update({ Fecha_Desparacitada: fechaDesparasitacion })
+      .eq("id", id)
+      .select()  // Para asegurar que se devuelvan datos
+    if (error) {
+      console.error("❌ Error al registrar desparasitación:", error)
+      return res.status(500).json({ message: "Error al registrar desparasitación" })
+    }
+    res.status(200).json({
+      message: "✅ Desparasitación registrada correctamente",
+      vaca: data[0],
+    })
+  } catch (error) {
+    console.error("Error en el servidor:", error)
+    res.status(500).json({ message: "Error en el servidor al registrar desparasitación" })
+  }
+})
 
 export default router

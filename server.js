@@ -17,6 +17,7 @@ import vacaRoutes from "./routes/vacas.js"
 import produccionLecheRoutes from "./routes/produccionLeche.js"
 import procedimientoMedicoRoutes from "./routes/procedimientoMedico.js"
 import recordatorioRoutes from "./routes/recordatorios.js"
+import alertaAutomaticasRoutes from "./routes/alertasautomaticas.js"
 
 // Configuración básica
 const app = express()
@@ -87,6 +88,7 @@ app.use("/api", vacaRoutes)
 app.use("/api", produccionLecheRoutes)
 app.use("/api", procedimientoMedicoRoutes)
 app.use("/api", recordatorioRoutes)
+app.use("/api", alertaAutomaticasRoutes)
 
 // Ruta de ping para verificar que el servidor está funcionando
 app.get("/api/ping", (req, res) => {
