@@ -59,7 +59,7 @@ router.post("/registrar/recordatorios/:id", async (req, res) => {
     // Insertar el recordatorio
     const { data, error } = await supabase
       .from("Recordatorio")
-      .insert([{ Fecha: fechaUTC.toISOString(), Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }])
+      .insert([{ Fecha: fechaColombia.toISOString(), Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }])
       .select()
 
     if (error) {
@@ -107,18 +107,25 @@ router.delete("/recordatorios/eliminar/:id", async (req, res) => {
 })
 
 // Enviar correos automatizados
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
 router.get("/recordatorio/enviar", async (req, res) => {
   console.log("⏰ Verificando recordatorios para enviar con 1 hora de anticipación...")
 
   try {
-    const ahora = new Date()
-    const margen = 2 * 60 * 1000 // 2 minutos de margen (en milisegundos)
+    const ahoraCol = dayjs().tz("America/Bogota")
+    const margen = 2 * 60 * 1000 // 2 minutos en milisegundos
 
-    const desde = new Date(ahora.getTime() + 60 * 60 * 1000 - margen)
-    const hasta = new Date(ahora.getTime() + 60 * 60 * 1000 + margen)
+    const desde = ahoraCol.add(1, "hour").subtract(margen, "millisecond")
+    const hasta = ahoraCol.add(1, "hour").add(margen, "millisecond")
 
-    console.log("🕐 Ahora: ", ahora.toISOString())
-    console.log("🔍 Buscando entre: ", desde.toISOString(), "y", hasta.toISOString())
+    console.log("🕐 Hora Colombia: ", ahoraCol.format())
+    console.log("🔍 Buscando entre:", desde.toISOString(), "y", hasta.toISOString())
 
     const { data: recordatorios, error } = await supabase
       .from("Recordatorio")
@@ -161,7 +168,7 @@ router.get("/recordatorio/enviar", async (req, res) => {
         from: `"Sistema de Recordatorios" <${process.env.EMAIL}>`,
         to: usuario.Correo,
         subject: `📌 Recordatorio: ${r.Titulo}`,
-        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio programado para las ${new Date(r.Fecha).toLocaleTimeString()}:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}`,
+        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio programado para las ${dayjs(r.Fecha).tz("America/Bogota").format("HH:mm")}:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}`,
       }
 
       try {
