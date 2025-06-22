@@ -111,7 +111,6 @@ router.delete("/recordatorios/eliminar/:id", verificarToken, async (req, res) =>
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
-import { verificarToken } from "../middleware/auth.js"
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
