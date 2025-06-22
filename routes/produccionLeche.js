@@ -1,5 +1,6 @@
 import express from "express"
 import supabase from "../config/supabase.js"
+import { verificarToken } from "../middleware/auth.js"
 
 const router = express.Router()
 
@@ -85,7 +86,7 @@ router.post("/registrar/leche/:id", async (req, res) => {
 })
 
 // Eliminar producción de leche
-router.delete("/eliminar/produccion/:id", async (req, res) => {
+router.delete("/eliminar/produccion/:id", verificarToken, async (req, res) => {
   const { id } = req.params
   console.log("ID del vaca:", id)
 

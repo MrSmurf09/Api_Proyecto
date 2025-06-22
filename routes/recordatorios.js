@@ -1,6 +1,7 @@
 import express from "express"
 import { createTransport } from "nodemailer"
 import supabase from "../config/supabase.js"
+import { verificarToken } from "../middleware/auth.js"
 
 const router = express.Router()
 
@@ -80,7 +81,7 @@ router.post("/registrar/recordatorios/:id", async (req, res) => {
 })
 
 //eliminar recordatorios de una vaca
-router.delete("/recordatorios/eliminar/:id", async (req, res) => {
+router.delete("/recordatorios/eliminar/:id", verificarToken, async (req, res) => {
   const { id } = req.params
   console.log("ID del vaca:", id)
 
@@ -110,6 +111,7 @@ router.delete("/recordatorios/eliminar/:id", async (req, res) => {
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
+import { verificarToken } from "../middleware/auth.js"
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
