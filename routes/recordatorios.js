@@ -250,13 +250,6 @@ router.get("/recordatorio/enviar", async (req, res) => {
                                           </div>
                                       </div>
                                       
-                                      <!-- Action Button -->
-                                      <div style="text-align: center; margin-bottom: 30px;">
-                                          <a href="#" style="background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%); color: white; text-decoration: none; padding: 14px 30px; border-radius: 25px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3); transition: all 0.3s ease;">
-                                              Ver en el Sistema 🚀
-                                          </a>
-                                      </div>
-                                      
                                       <!-- Tips Section -->
                                       <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
                                           <p style="color: #856404; font-size: 14px; margin: 0; font-weight: 500;">
