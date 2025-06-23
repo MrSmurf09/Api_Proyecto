@@ -3,6 +3,13 @@ import { createTransport } from "nodemailer"
 import supabase from "../config/supabase.js"
 import { verificarToken } from "../middleware/auth.js"
 
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
 const router = express.Router()
 
 // Obtener recordatorios de una vaca
@@ -38,13 +45,14 @@ router.post("/registrar/recordatorios/:id", async (req, res) => {
   const { Fecha, Titulo, Descripcion, Tipo, UsuarioId } = req.body
 
   console.log("📌 Datos recibidos para registrar recordatorio:", req.body)
-  const fechaColombia = new Date(Fecha)
-  const offsetColombia = 5 * 60 // Colombia está en UTC-5
-  const fechaUTC = new Date(fechaColombia.getTime() + offsetColombia * 60000) // SUMAR para ir a UTC
 
-  console.log("💡 Fecha Colombia interpretada:", fechaColombia.toString())
-  console.log("📦 Fecha UTC para guardar:", fechaUTC.toISOString())
   try {
+    // Convertir la fecha enviada (sin zona horaria) a hora de Colombia y luego a UTC
+    const fechaUTC = dayjs.tz(Fecha, "America/Bogota").utc().toISOString()
+
+    console.log("🕐 Fecha en Colombia interpretada:", dayjs.tz(Fecha, "America/Bogota").format())
+    console.log("🌐 Fecha convertida a UTC:", fechaUTC)
+
     // Verificar que el usuario exista
     const { data: usuario, error: errorUsuario } = await supabase
       .from("Usuario")
@@ -57,10 +65,17 @@ router.post("/registrar/recordatorios/:id", async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" })
     }
 
-    // Insertar el recordatorio
+    // Insertar el recordatorio con la fecha en UTC
     const { data, error } = await supabase
       .from("Recordatorio")
-      .insert([{ Fecha: fechaColombia.toISOString(), Titulo, Descripcion, Tipo, UsuarioId, VacaId: id }])
+      .insert([{
+        Fecha: fechaUTC,
+        Titulo,
+        Descripcion,
+        Tipo,
+        UsuarioId,
+        VacaId: id
+      }])
       .select()
 
     if (error) {
@@ -68,11 +83,9 @@ router.post("/registrar/recordatorios/:id", async (req, res) => {
       return res.status(500).json({ message: "Error al registrar el recordatorio" })
     }
 
-    const recordatorio = data[0]
-
     res.status(201).json({
       message: "✅ Recordatorio registrado con éxito",
-      recordatorios: recordatorio,
+      recordatorios: data[0],
     })
   } catch (error) {
     console.error("❌ Error en el servidor:", error)
@@ -108,13 +121,6 @@ router.delete("/recordatorios/eliminar/:id", verificarToken, async (req, res) =>
 })
 
 // Enviar correos automatizados
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc.js'
-import timezone from 'dayjs/plugin/timezone.js'
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
-
 router.get("/recordatorio/enviar", async (req, res) => {
   console.log("⏰ Verificando recordatorios para enviar con 1 hora de anticipación...")
 
@@ -169,7 +175,119 @@ router.get("/recordatorio/enviar", async (req, res) => {
         from: `"Sistema de Recordatorios" <${process.env.EMAIL}>`,
         to: usuario.Correo,
         subject: `📌 Recordatorio: ${r.Titulo}`,
-        text: `Hola ${usuario.Nombre},\n\nEste es tu recordatorio programado para las ${dayjs(r.Fecha).tz("America/Bogota").format("HH:mm")}:\n\n${r.Descripcion}\n\nTipo: ${r.Tipo}`,
+        html: `
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Recordatorio Programado</title>
+          </head>
+          <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f7fa;">
+                  <tr>
+                      <td align="center" style="padding: 40px 20px;">
+                          <!-- Main Container -->
+                          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden;">
+                              
+                              <!-- Header -->
+                              <tr>
+                                  <td style="background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%); padding: 30px 40px; text-align: center;">
+                                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                          <tr>
+                                              <td align="center">
+                                                  <div style="background-color: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                                                      <span style="font-size: 28px;">🐄</span>
+                                                  </div>
+                                                  <h1 style="color: #ffffff; font-size: 24px; font-weight: 600; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                      Recordatorio Programado
+                                                  </h1>
+                                                  <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 8px 0 0 0;">
+                                                      Sistema de Gestión Ganadera
+                                                  </p>
+                                              </td>
+                                          </tr>
+                                      </table>
+                                  </td>
+                              </tr>
+                              
+                              <!-- Content -->
+                              <tr>
+                                  <td style="padding: 40px;">
+                                      <!-- Greeting -->
+                                      <div style="margin-bottom: 30px;">
+                                          <p style="font-size: 18px; color: #2c3e50; margin: 0; font-weight: 500;">
+                                              Hola <strong style="color: #2E7D32;">${usuario.Nombre}</strong> 👋
+                                          </p>
+                                          <p style="font-size: 16px; color: #5a6c7d; margin: 10px 0 0 0; line-height: 1.5;">
+                                              Este es tu recordatorio programado para las 
+                                              <strong style="color: #2E7D32;">${dayjs(r.Fecha).tz("America/Bogota").format("h:mm A")}</strong>
+                                          </p>
+                                      </div>
+                                      
+                                      <!-- Reminder Details Card -->
+                                      <div style="background-color: #f8fffe; border: 2px solid #e8f5e8; border-radius: 10px; padding: 25px; margin-bottom: 30px;">
+                                          <!-- Title -->
+                                          <div style="margin-bottom: 20px;">
+                                              <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                                  <span style="font-size: 18px; margin-right: 8px;">📋</span>
+                                                  <h3 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin: 0;">Título</h3>
+                                              </div>
+                                              <p style="color: #2E7D32; font-size: 18px; font-weight: 600; margin: 0; padding-left: 26px;">
+                                                  ${r.Titulo}
+                                              </p>
+                                          </div>
+                                          
+                                          <!-- Description -->
+                                          <div style="margin-bottom: 20px;">
+                                              <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                                  <span style="font-size: 18px; margin-right: 8px;">📝</span>
+                                                  <h3 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin: 0;">Descripción</h3>
+                                              </div>
+                                              <p style="color: #5a6c7d; font-size: 15px; margin: 0; padding-left: 26px; line-height: 1.6;">
+                                                  ${r.Descripcion}
+                                              </p>
+                                          </div>
+                                          
+                                          <!-- Type -->
+                                          <div>
+                                              <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                                  <span style="font-size: 18px; margin-right: 8px;">🏷️</span>
+                                                  <h3 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin: 0;">Tipo</h3>
+                                              </div>
+                                              <span style="background-color: #2E7D32; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; margin-left: 26px; display: inline-block;">
+                                                  ${r.Tipo}
+                                              </span>
+                                          </div>
+                                      </div>
+                                      
+                                      <!-- Tips Section -->
+                                      <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
+                                          <p style="color: #856404; font-size: 14px; margin: 0; font-weight: 500;">
+                                              💡 <strong>Consejo:</strong> Mantén tus recordatorios actualizados para una mejor gestión de tu ganado.
+                                          </p>
+                                      </div>
+                                  </td>
+                              </tr>
+                              
+                              <!-- Footer -->
+                              <tr>
+                                  <td style="background-color: #f8f9fa; padding: 30px 40px; text-align: center; border-top: 1px solid #e9ecef;">
+                                      <p style="color: #6c757d; font-size: 13px; margin: 0 0 10px 0; line-height: 1.5;">
+                                          Este es un mensaje automático del <strong>Sistema de Recordatorios Ganaderos</strong>
+                                      </p>
+                                      <p style="color: #adb5bd; font-size: 12px; margin: 0;">
+                                          Si tienes alguna pregunta, no dudes en contactar a nuestro equipo de soporte.
+                                      </p>
+                                  </td>
+                              </tr>
+                          </table>
+                      </td>
+                  </tr>
+              </table>
+          </body>
+          </html>
+        `,
       }
 
       try {
