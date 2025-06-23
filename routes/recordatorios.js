@@ -294,7 +294,7 @@ router.get("/recordatorio/enviar", async (req, res) => {
                                                   <td style="padding: 8px 0;">
                                                       <div style="display: flex; align-items: center; justify-content: center;">
                                                           <span style="font-size: 16px; margin-right: 8px;">🌐</span>
-                                                          <a href="https://www.sistemaganadero.com" style="color: #2E7D32; text-decoration: none; font-size: 14px; font-weight: 500;">
+                                                          <a href="https://www.appcontrolbovino.com/" style="color: #2E7D32; text-decoration: none; font-size: 14px; font-weight: 500;">
                                                               www.appcontrolbovino.com
                                                           </a>
                                                       </div>

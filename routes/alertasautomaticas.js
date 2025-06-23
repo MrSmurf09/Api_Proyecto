@@ -267,8 +267,8 @@ async function enviarCorreo(destinatario, asunto, alertaData, nombreUsuario = "g
                             <td style="background-color: #f8f9fa; padding: 30px 40px; text-align: center; border-top: 1px solid #e9ecef;">
                                 <div style="margin-bottom: 20px;">
                                     <span style="font-size: 24px;">🐄</span>
-                                    <h3 style="color: #2c3e50; font-size: 18px; font-weight: 600; margin: 8px 0 5px 0;">Sistema de Control Bovino</h3>
-                                    <p style="color: #6c757d; font-size: 14px; margin: 0;">Gestión inteligente para tu ganado</p>
+                                    <h3 style="color: #2c3e50; font-size: 18px; font-weight: 600; margin: 8px 0 5px 0;">ControlBovino</h3>
+                                    <p style="color: #6c757d; font-size: 14px; margin: 0;">Tu aliado para llevar el control de tu ganado</p>
                                 </div>
                                 
                                 <p style="color: #6c757d; font-size: 13px; margin: 0 0 15px 0; line-height: 1.5;">
@@ -276,13 +276,13 @@ async function enviarCorreo(destinatario, asunto, alertaData, nombreUsuario = "g
                                 </p>
                                 
                                 <p style="color: #adb5bd; font-size: 12px; margin: 0;">
-                                    Si tienes alguna pregunta, contacta a nuestro equipo de soporte técnico.
+                                    Si tienes alguna pregunta, visita <a href="https://www.appcontrolbovino.com/" style="color: #2E7D32; text-decoration: none;">www.appcontrolbovino.com</a>
                                 </p>
                                 
                                 <!-- Contact Info -->
                                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
                                     <p style="color: #6c757d; font-size: 12px; margin: 0;">
-                                        🌐 www.appcontrolbovino.com
+                                        📧 proyectocontrolbovino@gmail.com | 🌐 <a href="https://www.appcontrolbovino.com/" style="color: #2E7D32; text-decoration: none;">www.appcontrolbovino.com</a>
                                     </p>
                                 </div>
                             </td>
