@@ -57,6 +57,8 @@ router.get("/revisar-vacas", async (req, res) => {
 
       if (!correoUsuario) continue
 
+      console.log(`🐄 Vaca ${Codigo} asignada a correo: ${correoUsuario}`)
+
       // --- EMBARAZO ---
       if (Fecha_Embarazo) {
         const fechaParto = dayjs(Fecha_Embarazo).add(280, "day")
