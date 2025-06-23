@@ -248,17 +248,13 @@ router.get("/recordatorio/enviar", async (req, res) => {
                                                   ${r.Descripcion}
                                               </p>
                                           </div>
-                                          
-                                          <!-- Type -->
-                                          <div>
-                                              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                                                  <span style="font-size: 18px; margin-right: 8px;">🏷️</span>
-                                                  <h3 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin: 0;">Tipo</h3>
-                                              </div>
-                                              <span style="background-color: #2E7D32; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; margin-left: 26px; display: inline-block;">
-                                                  ${r.Tipo}
-                                              </span>
-                                          </div>
+                                      </div>
+                                      
+                                      <!-- Action Button -->
+                                      <div style="text-align: center; margin-bottom: 30px;">
+                                          <a href="#" style="background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%); color: white; text-decoration: none; padding: 14px 30px; border-radius: 25px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3); transition: all 0.3s ease;">
+                                              Ver en el Sistema 🚀
+                                          </a>
                                       </div>
                                       
                                       <!-- Tips Section -->
@@ -273,12 +269,68 @@ router.get("/recordatorio/enviar", async (req, res) => {
                               <!-- Footer -->
                               <tr>
                                   <td style="background-color: #f8f9fa; padding: 30px 40px; text-align: center; border-top: 1px solid #e9ecef;">
-                                      <p style="color: #6c757d; font-size: 13px; margin: 0 0 10px 0; line-height: 1.5;">
+                                      <!-- Brand Section -->
+                                      <div style="margin-bottom: 25px;">
+                                          <span style="font-size: 24px;">🐄</span>
+                                          <h3 style="color: #2c3e50; font-size: 18px; font-weight: 600; margin: 8px 0 5px 0;">Sistema de Recordatorios Ganaderos</h3>
+                                          <p style="color: #6c757d; font-size: 14px; margin: 0;">Gestión inteligente para tu ganado</p>
+                                      </div>
+                                      
+                                      <!-- Automatic Message -->
+                                      <p style="color: #6c757d; font-size: 13px; margin: 0 0 20px 0; line-height: 1.5;">
                                           Este es un mensaje automático del <strong>Sistema de Recordatorios Ganaderos</strong>
                                       </p>
+                                      
+                                      <!-- Contact Information -->
+                                      <div style="background-color: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                                          <h4 style="color: #2E7D32; font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">📞 Información de Contacto</h4>
+                                          
+                                          <!-- Contact Details -->
+                                          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                              <tr>
+                                                  <td style="padding: 8px 0;">
+                                                      <div style="display: flex; align-items: center; justify-content: center;">
+                                                          <span style="font-size: 16px; margin-right: 8px;">📧</span>
+                                                          <a href="mailto:soporte@ganaderia.com" style="color: #2E7D32; text-decoration: none; font-size: 14px; font-weight: 500;">
+                                                              proyectocontrolbovino@gmail.com
+                                                          </a>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                              <tr>
+                                                  <td style="padding: 8px 0;">
+                                                      <div style="display: flex; align-items: center; justify-content: center;">
+                                                          <span style="font-size: 16px; margin-right: 8px;">🌐</span>
+                                                          <a href="https://www.sistemaganadero.com" style="color: #2E7D32; text-decoration: none; font-size: 14px; font-weight: 500;">
+                                                              www.appcontrolbovino.com
+                                                          </a>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                              <tr>
+                                                  <td style="padding: 8px 0;">
+                                                      <div style="display: flex; align-items: center; justify-content: center;">
+                                                          <span style="font-size: 16px; margin-right: 8px;">🕒</span>
+                                                          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">
+                                                              Lun - Vie: 8:00 AM - 6:00 PM
+                                                          </span>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                          </table>
+                                      </div>
+                                      
+                                      <!-- Support Message -->
                                       <p style="color: #adb5bd; font-size: 12px; margin: 0;">
                                           Si tienes alguna pregunta, no dudes en contactar a nuestro equipo de soporte.
                                       </p>
+                                      
+                                      <!-- Copyright -->
+                                      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+                                          <p style="color: #adb5bd; font-size: 11px; margin: 0;">
+                                              © 2024 Sistema de Recordatorios Ganaderos. Todos los derechos reservados.
+                                          </p>
+                                      </div>
                                   </td>
                               </tr>
                           </table>
