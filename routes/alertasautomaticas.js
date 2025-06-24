@@ -137,6 +137,41 @@ async function enviarCorreo(destinatario, asunto, alertaData, nombreUsuario = "g
       ? { primario: "#E91E63", secundario: "#FCE4EC", acento: "#AD1457" }
       : { primario: "#FF9800", secundario: "#FFF3E0", acento: "#F57C00" }
 
+  const detallesHTML =
+  tipo === "embarazo"
+    ? `
+      <div style="margin-bottom: 10px;">
+          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🐄 Vaca:</span>
+          <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.vaca}</span>
+      </div>
+      <div style="margin-bottom: 10px;">
+          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🌾 Potrero:</span>
+          <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.potrero}</span>
+      </div>
+      <div style="margin-bottom: 10px;">
+          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🏡 Finca:</span>
+          <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.finca}</span>
+      </div>
+      <div>
+          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">⏰ Días restantes:</span>
+          <span style="background-color: ${colores.primario}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px;">1 - 7 días</span>
+      </div>
+    `
+    : `
+      <div style="margin-bottom: 10px;">
+          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🌾 Potrero:</span>
+          <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.potrero}</span>
+      </div>
+      <div style="margin-bottom: 10px;">
+          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🏡 Finca:</span>
+          <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.finca}</span>
+      </div>
+      <div>
+          <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">⏰ Días restantes:</span>
+          <span style="background-color: ${colores.primario}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px;">1 - 3 días</span>
+      </div>
+    `
+
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="es">
@@ -213,41 +248,7 @@ async function enviarCorreo(destinatario, asunto, alertaData, nombreUsuario = "g
                                     <!-- Additional Details -->
                                     <div style="background-color: rgba(255,255,255,0.7); border-radius: 8px; padding: 20px;">
                                         <h4 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">📊 Información Adicional</h4>
-                                        ${
-                                          tipo === "embarazo"
-                                            ? `
-                                            <div style="margin-bottom: 10px;">
-                                                <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🐄 Vaca:</span>
-                                                <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.vaca}</span>
-                                            </div>
-                                            <div style="margin-bottom: 10px;">
-                                                <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🌾 Potrero:</span>
-                                                <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.potrero}</span>
-                                            </div>
-                                            <div style="margin-bottom: 10px;">
-                                                <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🏡 Finca:</span>
-                                                <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.finca}</span>
-                                            </div>
-                                            <div>
-                                                <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">⏰ Días restantes:</span>
-                                                <span style="background-color: ${colores.primario}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px;">1 - 7 días</span>
-                                            </div>
-                                        `
-                                            : `
-                                            <div style="margin-bottom: 10px;">
-                                                <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🌾 Potrero:</span>
-                                                <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.potrero}</span>
-                                            </div>
-                                            <div style="margin-bottom: 10px;">
-                                                <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🏡 Finca:</span>
-                                                <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.finca}</span>
-                                            </div>
-                                            <div>
-                                                <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">⏰ Días restantes:</span>
-                                                <span style="background-color: ${colores.primario}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px;">1 - 3 días</span>
-                                            </div>
-                                        `
-                                        }
+                                        ${detallesHTML}
                                     </div>
                                 </div>
                                 
