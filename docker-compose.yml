@@ -1,0 +1,34 @@
+services:
+  productos:
+    container_name: apiproductos
+    hostname: apiproductos
+    restart: unless-stopped
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports: 
+      - 4008:3000
+    networks:
+      - shared
+
+  mariadbproductos:
+    image: mariadb:11.8.2
+    container_name: mariadbproductos
+    hostname: mariadbproductos
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./dbdata:/var/lib/mysql
+      - ./dumps:/docker-entrypoint-initdb.d
+    ports:
+      - 3323:3306
+    networks:
+      - shared
+
+networks:
+  shared:
+    external: true
+    name: shared-network
