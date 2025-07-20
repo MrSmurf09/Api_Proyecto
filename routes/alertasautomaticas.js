@@ -138,8 +138,8 @@ async function enviarCorreo(destinatario, asunto, alertaData, nombreUsuario = "g
       : { primario: "#FF9800", secundario: "#FFF3E0", acento: "#F57C00" }
 
   const detallesHTML =
-  tipo === "embarazo"
-    ? `
+    tipo === "embarazo"
+      ? `
       <div style="margin-bottom: 10px;">
           <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🐄 Vaca:</span>
           <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.vaca}</span>
@@ -157,7 +157,7 @@ async function enviarCorreo(destinatario, asunto, alertaData, nombreUsuario = "g
           <span style="background-color: ${colores.primario}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px;">1 - 7 días</span>
       </div>
     `
-    : `
+      : `
       <div style="margin-bottom: 10px;">
           <span style="color: #5a6c7d; font-size: 14px; font-weight: 500;">🌾 Potrero:</span>
           <span style="color: #2c3e50; font-size: 14px; font-weight: 600; margin-left: 8px;">${detalles.potrero}</span>
@@ -255,11 +255,10 @@ async function enviarCorreo(destinatario, asunto, alertaData, nombreUsuario = "g
                                 <!-- Tips Section -->
                                 <div style="background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 18px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
                                     <p style="color: #2e7d32; font-size: 14px; margin: 0; font-weight: 500;">
-                                        💡 <strong>Recomendación:</strong> ${
-                                          tipo === "embarazo"
-                                            ? "Prepara un área limpia y segura para el parto. Mantén contacto con el veterinario."
-                                            : "Programa la desparasitación con anticipación para mantener la salud del ganado."
-                                        }
+                                        💡 <strong>Recomendación:</strong> ${tipo === "embarazo"
+      ? "Prepara un área limpia y segura para el parto. Mantén contacto con el veterinario."
+      : "Programa la desparasitación con anticipación para mantener la salud del ganado."
+    }
                                     </p>
                                 </div>
                             </td>
